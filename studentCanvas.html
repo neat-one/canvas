@@ -13,14 +13,63 @@
 		canvas{
 			border: 1px solid black;
 		}
+
+		@import url(https://fonts.googleapis.com/css?family=Open+Sans);
+		body {
+		margin: 0;
+		padding: 0;
+		background-color: #e6e6e6;
+		}
+		h2 {
+		background-color: #dbdbdb;
+		margin: 0;
+		margin-bottom: 15px;
+		padding: 10px;
+		font-family: 'Open Sans';
+		}
+		#color-input {
+		display: none;
+		}
+		#color-label {
+		margin-left: 15px;
+		position: absolute;
+		height: 30px;
+		width: 50px;
+		} 
+		#color-input:checked ~ #color-picker {
+		opacity: 1;
+		}
+		#color-picker {
+		position: absolute;
+		left: 70px; 
+		background-color: white;
+		height: 150px;
+		width: 185px;
+		border: solid 1px #ccc;
+		opacity: 0;
+		padding: 5px;
+		}
+		canvas:hover {
+		cursor: crosshair;
+		}
 	</style>
 
 
 </head>
 <body>
+	
+
 	<canvas id="canvas" width="500" height="500">
   An alternative text describing what your canvas displays. 
 </canvas>
+<br><input type = "file" id = "myFile" size = "50" onchange = "myFunction()"><br><br>
+<label for="color-input" id="color-label" style="background-color: red"></label>
+	<input type="checkbox" id="color-input" checked></input>
+	
+	<div id="color-picker">
+		<canvas id="color-block" height="150" width="150"></canvas>
+		<canvas id="color-strip" height="150" width="30"></canvas>
+	</div>
 
 <script>
 
@@ -101,78 +150,93 @@
 
 	})
 
+	var colorBlock = document.getElementById('color-block');
+	var ctx1 = colorBlock.getContext('2d');
+	var width1 = colorBlock.width;
+	var height1 = colorBlock.height;
 
-	// ctx.fillStyle = 'red';
-	// ctx.arc(250,250,50,0,2*Math.PI);
-	// ctx.fill();
-// 	ctx.clearRect(250,250,10,10);
-// 	//Paths
-// 	// https://www.html5canvastutorials.com/tutorials/html5-canvas-arcs/
-// 	// arc(x, y, radius, startAngle, endAngle, anticlockwise)
-// 	// closePath() connects the first point with the last point
-// 	ctx.beginPath();					 //quit old drawing, start new one
-// 	ctx.arc(75,75,50,0,Math.PI*2,true);  // Outer circle
-// 	// ctx.moveTo(110,75);					 
-// 	// ctx.arc(75,75,35,0,Math.PI,false);   // Mouth
-// 	ctx.moveTo(55,100);					 
-// 	ctx.arc(75,100,20,Math.PI*1,0,false);   // Mouth
-// 	ctx.moveTo(65,65);
-// 	ctx.arc(60,65,5,0,Math.PI*2,true);  // Left eye
-// 	ctx.moveTo(95,65);
-// 	ctx.arc(90,65,5,0,Math.PI*2,true);  // Right eye
-// 	ctx.stroke();
-// 	//Lines
-// 	// Filled triangle
-// 	ctx.beginPath();
-// 	ctx.moveTo(425,345);
-// 	ctx.lineTo(425,425);
-// 	ctx.lineTo(345,345)
-// 	ctx.fillStyle = 'blue';
-// 	ctx.fill();
-// 	// Stroked triangle
-// 	ctx.beginPath();
-// 	ctx.moveTo(345,345);
-// 	ctx.lineTo(345,425);
-// 	ctx.lineTo(425,425);
-// 	ctx.closePath();
-// 	ctx.stroke();
-// 	//Text
-// 	ctx.fillStyle = '#00F';
-// 	ctx.font = 'Italic 30px Sans-Serif';
-// 	ctx.strokeText('Your Name', 50, 400);
-// 	ctx.font = 'Bold 30px Arial';
-// 	ctx.fillText('Different Font!', 250, 50);
-// 	function myFunction(){
-//     var x = document.getElementById("myFile");
-//     var txt = "";
-//     if ('files' in x) {
-//         if (x.files.length == 0) {
-//             txt = "Select a file";
-//         } else {
-//         	var img = new Image();
-//             img.src = "images/" + x.files[0].name;
-// 			img.onload = function(){
-// 				ctx.drawImage(img, 25, 300);
-// 				// ctx.drawImage(img, img.width / 4, img.height / 4, img.width / 2, img.height / 2, 0, 0, canvas.width, canvas.height);
-// 				ctx.fillStyle = '#00F';
-// 			ctx.font = 'Italic 30px Sans-Serif';
-// 			ctx.strokeText('Your Name', 50, 400);
-//       		}
-//       	}
-//       } 
-//     else {
-//         if (x.value == "") {
-//             txt += "Select a file.";
-//         } else {
-//             txt += "The files property is not supported by your browser!";
-//             txt  += "<br>The path of the selected file: " + x.value; // If the browser does not support the files property, it will return the path of the selected file instead. 
-//         }
-//     }
-    
-// }
+	var colorStrip = document.getElementById('color-strip');
+	var ctx2 = colorStrip.getContext('2d');
+	var width2 = colorStrip.width;
+	var height2 = colorStrip.height;
+
+	var colorLabel = document.getElementById('color-label');
+
+	var x = 0;
+	var y = 0;
+	var drag = false;
+	var rgbaColor = 'rgba(255,0,0,1)';
+
+	ctx1.rect(0, 0, width1, height1);
+	fillGradient();
+
+	ctx2.rect(0, 0, width2, height2);
+	var grd1 = ctx2.createLinearGradient(0, 0, 0, height1);
+	grd1.addColorStop(0, 'rgba(255, 0, 0, 1)');
+	grd1.addColorStop(0.17, 'rgba(255, 255, 0, 1)');
+	grd1.addColorStop(0.34, 'rgba(0, 255, 0, 1)');
+	grd1.addColorStop(0.51, 'rgba(0, 255, 255, 1)');
+	grd1.addColorStop(0.68, 'rgba(0, 0, 255, 1)');
+	grd1.addColorStop(0.85, 'rgba(255, 0, 255, 1)');
+	grd1.addColorStop(1, 'rgba(255, 0, 0, 1)');
+	ctx2.fillStyle = grd1;
+	ctx2.fill();
+
+	function click(e) {
+	x = e.offsetX;
+	y = e.offsetY;
+	var imageData = ctx2.getImageData(x, y, 1, 1).data;
+	rgbaColor = 'rgba(' + imageData[0] + ',' + imageData[1] + ',' + imageData[2] + ',1)';
+	fillGradient();
+	}
+
+	function fillGradient() {
+	ctx1.fillStyle = rgbaColor;
+	ctx1.fillRect(0, 0, width1, height1);
+
+	var grdWhite = ctx2.createLinearGradient(0, 0, width1, 0);
+	grdWhite.addColorStop(0, 'rgba(255,255,255,1)');
+	grdWhite.addColorStop(1, 'rgba(255,255,255,0)');
+	ctx1.fillStyle = grdWhite;
+	ctx1.fillRect(0, 0, width1, height1);
+
+	var grdBlack = ctx2.createLinearGradient(0, 0, 0, height1);
+	grdBlack.addColorStop(0, 'rgba(0,0,0,0)');
+	grdBlack.addColorStop(1, 'rgba(0,0,0,1)');
+	ctx1.fillStyle = grdBlack;
+	ctx1.fillRect(0, 0, width1, height1);
+	}
+
+	function mousedown(e) {
+	drag = true;
+	changeColor(e);
+	}
+
+	function mousemove(e) {
+	if (drag) {
+		changeColor(e);
+	}
+	}
+
+	function mouseup(e) {
+	drag = false;
+	}
+
+	function changeColor(e) {
+	x = e.offsetX;
+	y = e.offsetY;
+	var imageData = ctx1.getImageData(x, y, 1, 1).data;
+	rgbaColor = 'rgba(' + imageData[0] + ',' + imageData[1] + ',' + imageData[2] + ',1)';
+	colorLabel.style.backgroundColor = rgbaColor;
+	color = rgbaColor
+	}
+
+	colorStrip.addEventListener("click", click, false);
+
+	colorBlock.addEventListener("mousedown", mousedown, false);
+	colorBlock.addEventListener("mouseup", mouseup, false);
+	colorBlock.addEventListener("mousemove", mousemove, false);
 </script>
-
-	<br><input type="file" id="myFile" size="50" onchange="myFunction()"><br>
 
 </body>
 </html>
